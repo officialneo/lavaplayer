@@ -1,0 +1,24 @@
+
+variables:
+  LP_VERSION: '1.3.11'
+  CI_VERSION: 'LP_VERSION.$CI_PIPELINE_IID'
+
+stages:
+- build
+
+build:
+  image: openjdk:8-jdk-slim
+  stage: build
+  before_script:
+  - export GRADLE_USER_HOME=`pwd`/.gradle
+  cache:
+    paths:
+    - .gradle/wrapper
+    - .gradle/caches
+  script:
+  - cd ./main
+  - ../gradlew assemble
+  artifacts:
+    expire_in: 1 week
+    paths:
+    - main/build/libs/main-$LP_VERSION.jar
