@@ -21,4 +21,4 @@ allprojects {
 
 ext.slf4jVersion = '1.7.25'
 
-group = 'com.sedmelluq'
+group = 'org.goldrenard'

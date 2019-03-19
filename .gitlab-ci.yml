@@ -17,8 +17,4 @@ build:
     - .gradle/caches
   script:
   - cd ./main
-  - ../gradlew assemble
-  artifacts:
-    expire_in: 1 week
-    paths:
-    - main/build/libs/main-$LP_VERSION.jar
+  - ../gradlew bintrayUpload

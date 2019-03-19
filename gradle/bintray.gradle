@@ -1,9 +1,9 @@
 bintray {
-  user = System.properties['bintray.user']
-  key = System.properties['bintray.apiKey']
+  user = System.getenv('BINTRAY_USER')
+  key = System.getenv('BINTRAY_KEY')
   publications = ['mavenJava']
   pkg {
-    repo = rootProject.group
+    repo = 'maven'
     name = moduleName
   }
 }
