@@ -1,5 +1,30 @@
 # Change Log
 
+## [1.3.17] -- 2019-04-26
+### Fixed
+- Fixed age-restricted videos not being playable (PR 172 by Devoxin).
+
+## [1.3.16] -- 2019-04-02
+### Fixed
+- Fixed probe hint matching logic for aac/ts causing HTTP source to not resolve tracks when mime type was present.  
+
+## [1.3.15] -- 2019-04-01
+### Fixed
+- Fixed no automatic reconnect on connection reset for some JDK versions.
+
+## [1.3.14] -- 2019-03-28
+### Fixed
+- Fixed MKV frame size parsing which caused some MKV/WEBM files to fail in the middle of playback.
+
+## [1.3.13] -- 2019-03-21
+### Fixed
+- Fixed an old x86 Linux native being bundled with main LP artifact, causing previous libc conflict to still manifest.
+
+## [1.3.12] -- 2019-03-20
+### Fixed
+- Fixed natives crashing due to libc conflict.
+- Fixed exception when calling provide on an ending track.
+
 ## [1.3.11] -- 2019-02-28
 ### Added
 - Support for playing MPEG-TS files directly, including metadata support.
