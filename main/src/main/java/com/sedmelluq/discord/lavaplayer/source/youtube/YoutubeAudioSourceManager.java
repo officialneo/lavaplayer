@@ -417,13 +417,13 @@ public class YoutubeAudioSourceManager implements AudioSourceManager, HttpConfig
   }
 
   private boolean determineFailureReasonFromStatus(String status, String reason, boolean mustExist) {
-    if ("fail".equals(status) || "ERROR".equals(status)) {
+    if ("fail".equals(status) || "ERROR".equals(status) || "UNPLAYABLE".equals(status)) {
       if (("This video does not exist.".equals(reason) || "This video is unavailable.".equals(reason)) && !mustExist) {
         return true;
       } else if (reason != null) {
         throw new FriendlyException(reason, COMMON, null);
       }
-    } else if ("ok".equals(status)) {
+    } else if ("ok".equalsIgnoreCase(status)) {
       return false;
     }
 
@@ -592,7 +592,7 @@ public class YoutubeAudioSourceManager implements AudioSourceManager, HttpConfig
       URIBuilder builder = new URIBuilder(url);
       return new UrlInfo(builder.getPath(), builder.getQueryParams().stream()
           .filter(it -> it.getValue() != null)
-          .collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue)));
+          .collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue, (a, b) -> a)));
     } catch (URISyntaxException e) {
       if (retryValidPart) {
         return getUrlInfo(url.substring(0, e.getIndex() - 1), false);
