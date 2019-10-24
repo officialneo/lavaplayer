@@ -38,9 +38,9 @@ import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.
  * Audio source manager that implements finding Yandex Music tracks based on URL.
  */
 public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpConfigurable {
-  private static final String TRACK_URL_REGEX = "^https?://music\\.yandex\\.ru/album/([0-9]+)/track/([0-9]+)$";
-  private static final String ALBUM_URL_REGEX = "^https?://music\\.yandex\\.ru/album/([0-9]+)$";
-  private static final String PLAYLIST_URL_REGEX = "^https?://music\\.yandex\\.ru/users/(.+)/playlists/([0-9]+)$";
+  private static final String TRACK_URL_REGEX = "^https?://music\\.yandex\\.[a-zA-Z]+/album/([0-9]+)/track/([0-9]+)$";
+  private static final String ALBUM_URL_REGEX = "^https?://music\\.yandex\\.[a-zA-Z]+/album/([0-9]+)$";
+  private static final String PLAYLIST_URL_REGEX = "^https?://music\\.yandex\\.[a-zA-Z]+/users/(.+)/playlists/([0-9]+)$";
 
   private static final String TRACKS_INFO_FORMAT = "https://api.music.yandex.net/tracks?trackIds=";
   private static final String ALBUM_INFO_FORMAT = "https://api.music.yandex.net/albums/%s/with-tracks";
