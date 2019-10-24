@@ -40,9 +40,11 @@ import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.
 public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpConfigurable {
   private static final String TRACK_URL_REGEX = "^https?://music\\.yandex\\.ru/album/([0-9]+)/track/([0-9]+)$";
   private static final String ALBUM_URL_REGEX = "^https?://music\\.yandex\\.ru/album/([0-9]+)$";
+  private static final String PLAYLIST_URL_REGEX = "^https?://music\\.yandex\\.ru/users/(.+)/playlists/([0-9]+)$";
 
   private static final String TRACKS_INFO_FORMAT = "https://api.music.yandex.net/tracks?trackIds=";
   private static final String ALBUM_INFO_FORMAT = "https://api.music.yandex.net/albums/%s/with-tracks";
+  private static final String PLAYLIST_INFO_FORMAT = "https://api.music.yandex.net/users/%s/playlists/%s";
   private static final String TRACK_DOWNLOAD_INFO = "https://api.music.yandex.net/tracks/%s/download-info";
 
   private static final String TRACK_URL_FORMAT = "https://music.yandex.ru/album/%s/track/%s";
@@ -51,6 +53,7 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
 
   private static final Pattern trackUrlPattern = Pattern.compile(TRACK_URL_REGEX);
   private static final Pattern albumUrlPattern = Pattern.compile(ALBUM_URL_REGEX);
+  private static final Pattern playlistUrlPattern = Pattern.compile(PLAYLIST_URL_REGEX);
 
   private final HttpInterfaceManager httpInterfaceManager;
 
@@ -70,8 +73,11 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
     if ((matcher = trackUrlPattern.matcher(reference.identifier)).matches()) {
       return loadTrack(matcher.group(1), matcher.group(2));
     }
+    if ((matcher = playlistUrlPattern.matcher(reference.identifier)).matches()) {
+      return loadPlaylist(String.format(PLAYLIST_INFO_FORMAT, matcher.group(1), matcher.group(2)), "tracks");
+    }
     if ((matcher = albumUrlPattern.matcher(reference.identifier)).matches()) {
-      return loadAlbum(matcher.group(1));
+      return loadPlaylist(String.format(ALBUM_INFO_FORMAT, matcher.group(1)), "volumes");
     }
     return null;
   }
@@ -91,8 +97,8 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
     });
   }
 
-  private AudioItem loadAlbum(String albumId) {
-    return extractFromApi(String.format(ALBUM_INFO_FORMAT, albumId), (httpClient, result) -> {
+  private AudioItem loadPlaylist(String url, String trackProperty) {
+    return extractFromApi(url, (httpClient, result) -> {
       JsonBrowser error = result.get("error");
       if (!error.isNull()) {
         String code = error.text();
@@ -101,7 +107,7 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
         }
         throw new FriendlyException(String.format("Yandex Music returned an error code: %s", code), SUSPICIOUS, null);
       }
-      JsonBrowser volumes = result.get("volumes");
+      JsonBrowser volumes = result.get(trackProperty);
       if (volumes.isNull()) {
         throw new FriendlyException("Empty album found", SUSPICIOUS, null);
       }
@@ -120,6 +126,9 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
   }
 
   private AudioTrack extractTrack(JsonBrowser trackInfo) {
+    if (!trackInfo.get("track").isNull()) {
+      trackInfo = trackInfo.get("track");
+    }
     String artists = trackInfo.get("artists").values().stream()
         .map(e -> e.get("name").text())
         .collect(Collectors.joining(", "));
