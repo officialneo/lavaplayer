@@ -187,7 +187,7 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
     }
   }
 
-  public String extractDirectUrl(HttpInterface httpInterface, String trackId, String codec) throws IOException {
+  public String extractDirectUrl(String trackId, String codec) throws IOException {
     return extractFromApi(String.format(TRACK_DOWNLOAD_INFO, trackId), (httpClient, codecsList) -> {
       JsonBrowser codecResult = codecsList.values().stream()
           .filter(e -> codec.equals(e.get("codec").text()))
@@ -197,7 +197,7 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
         throw new FriendlyException("Couldn't find supported track format.", SUSPICIOUS, null);
       }
       String storageUrl = codecResult.get("downloadInfoUrl").text();
-      DownloadInfo info = extractDownloadInfo(httpInterface, storageUrl);
+      DownloadInfo info = extractDownloadInfo(storageUrl);
 
       String sign = DigestUtils.md5Hex(MP3_SALT + info.path.substring(1) + info.s);
 
@@ -205,22 +205,26 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
     });
   }
 
-  private DownloadInfo extractDownloadInfo(HttpInterface httpInterface, String storageUrl) throws IOException {
-    String responseText;
-    try (CloseableHttpResponse response = httpInterface.execute(new HttpGet(storageUrl))) {
-      int statusCode = response.getStatusLine().getStatusCode();
-      if (statusCode != 200) {
-        throw new IOException("Invalid status code for track storage info: " + statusCode);
+  private DownloadInfo extractDownloadInfo(String storageUrl) throws IOException {
+    try (HttpInterface httpInterface = httpApiInterfaceManager.getInterface()) {
+      String responseText;
+      try (CloseableHttpResponse response = httpInterface.execute(new HttpGet(storageUrl))) {
+        int statusCode = response.getStatusLine().getStatusCode();
+        if (statusCode != 200) {
+          throw new IOException("Invalid status code for track storage info: " + statusCode);
+        }
+        responseText = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
       }
-      responseText = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+      DownloadInfo info = new DownloadInfo();
+      info.host = DataFormatTools.extractBetween(responseText, "<host>", "</host>");
+      info.path = DataFormatTools.extractBetween(responseText, "<path>", "</path>");
+      info.ts = DataFormatTools.extractBetween(responseText, "<ts>", "</ts>");
+      info.region = DataFormatTools.extractBetween(responseText, "<region>", "</region>");
+      info.s = DataFormatTools.extractBetween(responseText, "<s>", "</s>");
+      return info;
+    } catch (Exception e) {
+      throw ExceptionTools.wrapUnfriendlyExceptions("Loading information for a Yandex Music track failed.", FAULT, e);
     }
-    DownloadInfo info = new DownloadInfo();
-    info.host = DataFormatTools.extractBetween(responseText, "<host>", "</host>");
-    info.path = DataFormatTools.extractBetween(responseText, "<path>", "</path>");
-    info.ts = DataFormatTools.extractBetween(responseText, "<ts>", "</ts>");
-    info.region = DataFormatTools.extractBetween(responseText, "<region>", "</region>");
-    info.s = DataFormatTools.extractBetween(responseText, "<s>", "</s>");
-    return info;
   }
 
   @Override
