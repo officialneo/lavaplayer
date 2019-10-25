@@ -6,6 +6,7 @@ import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
 import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
+import com.sedmelluq.discord.lavaplayer.tools.http.HttpRequestModifier;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
@@ -54,17 +55,21 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
   private static final Pattern trackUrlPattern = Pattern.compile(TRACK_URL_REGEX);
   private static final Pattern albumUrlPattern = Pattern.compile(ALBUM_URL_REGEX);
   private static final Pattern playlistUrlPattern = Pattern.compile(PLAYLIST_URL_REGEX);
+  private static final HttpRequestModifier requestModifier = request -> {
+    request.setHeader("User-Agent", "Yandex-Music-API");
+    request.setHeader("X-Yandex-Music-Client", "WindowsPhone/3.20");
+  };
 
   private final HttpInterfaceManager httpInterfaceManager;
+
+  private final HttpInterfaceManager httpApiInterfaceManager;
 
   /**
    * Create an instance.
    */
   public YandexMusicAudioSourceManager() {
-    httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager(request -> {
-      request.setHeader("User-Agent", "Yandex-Music-API");
-      request.setHeader("X-Yandex-Music-Client", "WindowsPhone/3.20");
-    });
+    httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager(requestModifier);
+    httpApiInterfaceManager = HttpClientTools.createDefaultThreadLocalManager(requestModifier);
   }
 
   @Override
@@ -158,7 +163,7 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
   }
 
   private <T> T extractFromApi(String url, ApiExtractor<T> extractor) {
-    try (HttpInterface httpInterface = httpInterfaceManager.getInterface()) {
+    try (HttpInterface httpInterface = httpApiInterfaceManager.getInterface()) {
       String responseText;
 
       try (CloseableHttpResponse response = httpInterface.execute(new HttpGet(url))) {
@@ -236,6 +241,7 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
   @Override
   public void shutdown() {
     ExceptionTools.closeWithWarnings(httpInterfaceManager);
+    ExceptionTools.closeWithWarnings(httpApiInterfaceManager);
   }
 
   /**
@@ -253,6 +259,14 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
   @Override
   public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
     httpInterfaceManager.configureBuilder(configurator);
+  }
+
+  public void configureApiRequests(Function<RequestConfig, RequestConfig> configurator) {
+    httpApiInterfaceManager.configureRequests(configurator);
+  }
+
+  public void configureApiBuilder(Consumer<HttpClientBuilder> configurator) {
+    httpApiInterfaceManager.configureBuilder(configurator);
   }
 
   @Override
