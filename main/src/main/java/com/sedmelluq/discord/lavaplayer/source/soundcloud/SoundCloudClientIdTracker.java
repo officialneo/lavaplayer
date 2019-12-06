@@ -1,18 +1,18 @@
 package com.sedmelluq.discord.lavaplayer.source.soundcloud;
 
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class SoundCloudClientIdTracker {
   private static final Logger log = LoggerFactory.getLogger(SoundCloudClientIdTracker.class);
@@ -57,12 +57,6 @@ public class SoundCloudClientIdTracker {
     }
   }
 
-  public void setClientId(String clientId) {
-    synchronized (clientIdLock) {
-      this.clientId = clientId;
-    }
-  }
-
   public String getClientId() {
     synchronized (clientIdLock) {
       if (clientId == null) {
@@ -89,7 +83,7 @@ public class SoundCloudClientIdTracker {
   private String findApplicationScriptUrl(HttpInterface httpInterface) throws IOException {
     try (CloseableHttpResponse response = httpInterface.execute(new HttpGet("https://soundcloud.com"))) {
       int statusCode = response.getStatusLine().getStatusCode();
-      if (statusCode != 200) {
+      if (!HttpClientTools.isSuccessWithContent(statusCode)) {
         throw new IOException("Invalid status code for main page response: " + statusCode);
       }
 
@@ -115,7 +109,7 @@ public class SoundCloudClientIdTracker {
   private String findClientIdFromApplicationScript(HttpInterface httpInterface, String scriptUrl) throws IOException {
     try (CloseableHttpResponse response = httpInterface.execute(new HttpGet(scriptUrl))) {
       int statusCode = response.getStatusLine().getStatusCode();
-      if (statusCode != 200) {
+      if (!HttpClientTools.isSuccessWithContent(statusCode)) {
         throw new IOException("Invalid status code for application script response: " + statusCode);
       }
 
