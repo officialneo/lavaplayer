@@ -1,5 +1,6 @@
 package com.sedmelluq.discord.lavaplayer.track;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -32,8 +33,9 @@ public class AudioTrackInfo {
   public final String uri;
   /**
    * Additional metadata of the track
+   * Mutable, because we could set it after decoding without touching default serialization mechanism.
    */
-  public final Map<String, String> metadata;
+  public final Map<String, String> metadata = new HashMap<>();
 
   /**
    * @param title Track title
@@ -63,13 +65,15 @@ public class AudioTrackInfo {
     this.identifier = identifier;
     this.isStream = isStream;
     this.uri = uri;
-    this.metadata = metadata;
+    if (metadata != null) {
+      this.metadata.putAll(metadata);
+    }
   }
 
   /**
    * @return Artwork URL of the track
    */
   public String getArtworkUrl() {
-    return metadata != null ? metadata.get("artworkUrl") : null;
+    return metadata.get("artworkUrl");
   }
 }
