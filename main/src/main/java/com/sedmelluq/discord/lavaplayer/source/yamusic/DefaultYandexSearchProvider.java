@@ -2,10 +2,7 @@ package com.sedmelluq.discord.lavaplayer.source.yamusic;
 
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
-import com.sedmelluq.discord.lavaplayer.track.AudioItem;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.*;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -48,7 +45,7 @@ public class DefaultYandexSearchProvider extends AbstractYandexMusicApiLoader im
         if ("playlist".equalsIgnoreCase(type)) {
           return loadPlaylist(getResults(result, "playlists"), playlistLoader, trackFactory);
         }
-        return null;
+        return AudioReference.NO_TRACK;
       });
     } catch (Exception e) {
       throw new FriendlyException("Could not load search results", FriendlyException.Severity.SUSPICIOUS, e);
@@ -63,6 +60,9 @@ public class DefaultYandexSearchProvider extends AbstractYandexMusicApiLoader im
         break;
       }
     }
+    if (tracks.isEmpty()) {
+      return AudioReference.NO_TRACK;
+    }
     return new BasicAudioPlaylist("Yandex search result", tracks, null, true);
   }
 
@@ -70,7 +70,7 @@ public class DefaultYandexSearchProvider extends AbstractYandexMusicApiLoader im
                                  YandexMusicPlaylistLoader playlistLoader,
                                  Function<AudioTrackInfo, AudioTrack> trackFactory) {
     if (results.isEmpty()) {
-      return null;
+      return AudioReference.NO_TRACK;
     }
     JsonBrowser first = results.get(0);
     return playlistLoader.loadPlaylist(first.get("owner").get("login").safeText(),
@@ -81,7 +81,7 @@ public class DefaultYandexSearchProvider extends AbstractYandexMusicApiLoader im
                               YandexMusicPlaylistLoader playlistLoader,
                               Function<AudioTrackInfo, AudioTrack> trackFactory) {
     if (results.isEmpty()) {
-      return null;
+      return AudioReference.NO_TRACK;
     }
     JsonBrowser first = results.get(0);
     return playlistLoader.loadPlaylist(first.get("id").safeText(), "volumes", trackFactory);

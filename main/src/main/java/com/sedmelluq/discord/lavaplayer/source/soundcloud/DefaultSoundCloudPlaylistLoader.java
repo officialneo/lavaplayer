@@ -5,10 +5,8 @@ import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.*;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -50,7 +48,7 @@ public class DefaultSoundCloudPlaylistLoader implements SoundCloudPlaylistLoader
   }
 
   @Override
-  public AudioPlaylist load(
+  public AudioItem load(
       String identifier,
       HttpInterfaceManager httpInterfaceManager,
       Function<AudioTrackInfo, AudioTrack> trackFactory
@@ -64,7 +62,7 @@ public class DefaultSoundCloudPlaylistLoader implements SoundCloudPlaylistLoader
     }
   }
 
-  protected AudioPlaylist loadFromSet(
+  protected AudioItem loadFromSet(
       HttpInterfaceManager httpInterfaceManager,
       String playlistWebUrl,
       Function<AudioTrackInfo, AudioTrack> trackFactory
@@ -72,10 +70,13 @@ public class DefaultSoundCloudPlaylistLoader implements SoundCloudPlaylistLoader
     try (HttpInterface httpInterface = httpInterfaceManager.getInterface()) {
       JsonBrowser rootData = htmlDataLoader.load(httpInterface, playlistWebUrl);
       JsonBrowser playlistData = dataReader.findPlaylistData(rootData);
-
+      List<AudioTrack> tracks = loadPlaylistTracks(httpInterface, playlistData, trackFactory);
+      if (tracks.isEmpty()) {
+        return AudioReference.NO_TRACK;
+      }
       return new BasicAudioPlaylist(
           dataReader.readPlaylistName(playlistData),
-          loadPlaylistTracks(httpInterface, playlistData, trackFactory),
+          tracks,
           null,
           false
       );

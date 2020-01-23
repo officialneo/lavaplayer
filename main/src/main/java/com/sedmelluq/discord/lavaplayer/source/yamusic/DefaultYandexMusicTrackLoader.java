@@ -24,7 +24,7 @@ public class DefaultYandexMusicTrackLoader extends AbstractYandexMusicApiLoader 
       if (!error.isNull()) {
         String code = error.text();
         if ("not-found".equals(code)) {
-          return new AudioReference(null, null);
+          return AudioReference.NO_TRACK;
         }
         throw new FriendlyException(String.format("Yandex Music returned an error code: %s", code), SUSPICIOUS, null);
       }

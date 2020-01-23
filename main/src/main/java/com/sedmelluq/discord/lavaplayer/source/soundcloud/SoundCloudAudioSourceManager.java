@@ -335,6 +335,9 @@ public class SoundCloudAudioSourceManager implements AudioSourceManager, HttpCon
       }
     }
 
+    if (tracks.isEmpty()) {
+      return AudioReference.NO_TRACK;
+    }
     return new BasicAudioPlaylist("Search results for: " + query, tracks, null, true);
   }
 

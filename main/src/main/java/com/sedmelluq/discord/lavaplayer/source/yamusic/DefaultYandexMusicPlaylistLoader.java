@@ -30,7 +30,7 @@ public class DefaultYandexMusicPlaylistLoader extends DefaultYandexMusicTrackLoa
       if (!error.isNull()) {
         String code = error.text();
         if ("not-found".equals(code)) {
-          return new AudioReference(null, null);
+          return AudioReference.NO_TRACK;
         }
         throw new FriendlyException(String.format("Yandex Music returned an error code: %s", code), SUSPICIOUS, null);
       }
@@ -47,6 +47,9 @@ public class DefaultYandexMusicPlaylistLoader extends DefaultYandexMusicTrackLoa
         } else {
           tracks.add(YandexMusicUtils.extractTrack(trackInfo, trackFactory));
         }
+      }
+      if (tracks.isEmpty()) {
+        return AudioReference.NO_TRACK;
       }
       return new BasicAudioPlaylist(result.get("title").text(), tracks, null, false);
     });

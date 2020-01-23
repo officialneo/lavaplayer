@@ -27,7 +27,7 @@ public class LocalPlayerDemo {
 
     AudioPlayer player = manager.createPlayer();
 
-    manager.loadItem("ymsearch:playlist:1222222222222222222222222222222:thefatrat", new FunctionalResultHandler(player::playTrack, playlist -> {
+    manager.loadItem("ymsearch:album:thefatrat", new FunctionalResultHandler(player::playTrack, playlist -> {
       player.playTrack(playlist.getTracks().get(0));
     }, null, null));
 
