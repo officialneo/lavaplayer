@@ -33,7 +33,7 @@ public class YandexMusicAudioTrack extends DelegatedAudioTrack {
   @Override
   public void process(LocalAudioTrackExecutor localExecutor) throws Exception {
     try (HttpInterface httpInterface = sourceManager.getHttpInterface()) {
-      String trackMediaUrl = sourceManager.extractDirectUrl(trackInfo.identifier, "mp3");
+      String trackMediaUrl = sourceManager.getDirectUrlLoader().getDirectUrl(trackInfo.identifier, "mp3");
       log.debug("Starting Yandex Music track from URL: {}", trackMediaUrl);
       try (PersistentHttpStream stream = new PersistentHttpStream(httpInterface, new URI(trackMediaUrl), null)) {
         processDelegate(new Mp3AudioTrack(trackInfo, stream), localExecutor);

@@ -21,13 +21,13 @@ import static com.sedmelluq.discord.lavaplayer.format.StandardAudioDataFormats.C
 public class LocalPlayerDemo {
   public static void main(String[] args) throws LineUnavailableException, IOException {
     AudioPlayerManager manager = new DefaultAudioPlayerManager();
-    manager.registerSourceManager(new YandexMusicAudioSourceManager());
+    manager.registerSourceManager(new YandexMusicAudioSourceManager(true));
     AudioSourceManagers.registerRemoteSources(manager);
     manager.getConfiguration().setOutputFormat(COMMON_PCM_S16_BE);
 
     AudioPlayer player = manager.createPlayer();
 
-    manager.loadItem("https://music.yandex.com/album/7863756/track/54514781", new FunctionalResultHandler(player::playTrack, playlist -> {
+    manager.loadItem("ymsearch:playlist:1222222222222222222222222222222:thefatrat", new FunctionalResultHandler(player::playTrack, playlist -> {
       player.playTrack(playlist.getTracks().get(0));
     }, null, null));
 
