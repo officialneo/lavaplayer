@@ -43,6 +43,10 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
   private final YandexMusicPlaylistLoader playlistLoader;
   private final YandexMusicSearchResultLoader searchResultLoader;
 
+  public YandexMusicAudioSourceManager() {
+    this(true);
+  }
+
   public YandexMusicAudioSourceManager(boolean allowSearch) {
     this(
         allowSearch,
