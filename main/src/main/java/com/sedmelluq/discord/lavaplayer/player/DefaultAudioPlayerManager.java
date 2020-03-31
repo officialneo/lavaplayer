@@ -457,10 +457,12 @@ public class DefaultAudioPlayerManager implements AudioPlayerManager {
     return trackPlaybackExecutorService;
   }
 
+  @Override
   public ThreadPoolExecutor getTrackPlaybackExecutor() {
     return trackPlaybackExecutorService;
   }
 
+  @Override
   public ThreadPoolExecutor getTrackInfoExecutor() {
     return trackInfoExecutorService;
   }

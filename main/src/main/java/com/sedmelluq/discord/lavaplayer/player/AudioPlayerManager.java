@@ -11,6 +11,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -173,4 +174,14 @@ public interface AudioPlayerManager {
    *                     used.
    */
   void setHttpBuilderConfigurator(Consumer<HttpClientBuilder> configurator);
+
+  /**
+   * @return TrackPlayback thread pool executor
+   */
+  ThreadPoolExecutor getTrackPlaybackExecutor();
+
+  /**
+   * @return TrackInfo thread pool executor
+   */
+  ThreadPoolExecutor getTrackInfoExecutor();
 }
