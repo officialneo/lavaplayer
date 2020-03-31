@@ -78,7 +78,7 @@ public class DefaultAudioPlayerManager implements AudioPlayerManager {
   private volatile Consumer<HttpClientBuilder> httpBuilderConfigurator;
 
   // Executors
-  private final ExecutorService trackPlaybackExecutorService;
+  private final ThreadPoolExecutor trackPlaybackExecutorService;
   private final ThreadPoolExecutor trackInfoExecutorService;
   private final ScheduledExecutorService scheduledExecutorService;
   private final OrderedExecutor orderedInfoExecutor;
@@ -455,6 +455,14 @@ public class DefaultAudioPlayerManager implements AudioPlayerManager {
 
   public ExecutorService getExecutor() {
     return trackPlaybackExecutorService;
+  }
+
+  public ThreadPoolExecutor getTrackPlaybackExecutor() {
+    return trackPlaybackExecutorService;
+  }
+
+  public ThreadPoolExecutor getTrackInfoExecutor() {
+    return trackInfoExecutorService;
   }
 
   @Override
