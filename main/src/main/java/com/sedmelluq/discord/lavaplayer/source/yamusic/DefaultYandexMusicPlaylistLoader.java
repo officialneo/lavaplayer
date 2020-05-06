@@ -42,10 +42,10 @@ public class DefaultYandexMusicPlaylistLoader extends DefaultYandexMusicTrackLoa
       for (JsonBrowser trackInfo : volumes.values()) {
         if (trackInfo.isList()) {
           for (JsonBrowser innerInfo : trackInfo.values()) {
-            tracks.add(YandexMusicUtils.extractTrack(innerInfo, trackFactory));
+            tracks.add(loadTrack(innerInfo, trackFactory));
           }
         } else {
-          tracks.add(YandexMusicUtils.extractTrack(trackInfo, trackFactory));
+          tracks.add(loadTrack(trackInfo, trackFactory));
         }
       }
       if (tracks.isEmpty()) {
@@ -53,5 +53,17 @@ public class DefaultYandexMusicPlaylistLoader extends DefaultYandexMusicTrackLoa
       }
       return new BasicAudioPlaylist(result.get("title").text(), tracks, null, false);
     });
+  }
+
+  private AudioTrack loadTrack(JsonBrowser trackInfo, Function<AudioTrackInfo, AudioTrack> trackFactory) {
+    if (!trackInfo.get("title").isNull()) {
+      return YandexMusicUtils.extractTrack(trackInfo, trackFactory);
+    }
+    String trackId = trackInfo.get("id").text();
+    String albumId = trackInfo.get("albumId").text();
+    if (trackId == null || albumId == null) {
+      throw new FriendlyException("Could not load playlist track", FriendlyException.Severity.COMMON, null);
+    }
+    return (AudioTrack) loadTrack(albumId, trackId, trackFactory);
   }
 }
