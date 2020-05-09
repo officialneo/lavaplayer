@@ -59,6 +59,9 @@ public class DefaultYandexMusicPlaylistLoader extends DefaultYandexMusicTrackLoa
     if (!trackInfo.get("title").isNull()) {
       return YandexMusicUtils.extractTrack(trackInfo, trackFactory);
     }
+    if (!trackInfo.get("track").isNull()) {
+      return YandexMusicUtils.extractTrack(trackInfo, trackFactory);
+    }
     String trackId = trackInfo.get("id").text();
     String albumId = trackInfo.get("albumId").text();
     if (trackId == null || albumId == null) {
