@@ -3,6 +3,8 @@ package com.sedmelluq.discord.lavaplayer.source.yamusic;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
+import com.sedmelluq.discord.lavaplayer.tools.http.ExtendedHttpConfigurable;
+import com.sedmelluq.discord.lavaplayer.tools.http.MultiHttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
@@ -17,6 +19,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -38,6 +41,8 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
   private final boolean allowSearch;
 
   private final HttpInterfaceManager httpInterfaceManager;
+  private final ExtendedHttpConfigurable combinedHttpConfiguration;
+
   private final YandexMusicDirectUrlLoader directUrlLoader;
   private final YandexMusicTrackLoader trackLoader;
   private final YandexMusicPlaylistLoader playlistLoader;
@@ -66,14 +71,22 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
       YandexMusicPlaylistLoader playlistLoader,
       YandexMusicDirectUrlLoader directUrlLoader,
       YandexMusicSearchResultLoader searchResultLoader) {
-
-    httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
-    httpInterfaceManager.setHttpContextFilter(new YandexHttpContextFilter());
     this.allowSearch = allowSearch;
     this.trackLoader = trackLoader;
     this.playlistLoader = playlistLoader;
     this.directUrlLoader = directUrlLoader;
     this.searchResultLoader = searchResultLoader;
+
+    httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
+    httpInterfaceManager.setHttpContextFilter(new YandexHttpContextFilter());
+
+    combinedHttpConfiguration = new MultiHttpConfigurable(Arrays.asList(
+        httpInterfaceManager,
+        trackLoader.getHttpConfiguration(),
+        playlistLoader.getHttpConfiguration(),
+        directUrlLoader.getHttpConfiguration(),
+        searchResultLoader.getHttpConfiguration()
+    ));
   }
 
   @Override
@@ -135,31 +148,40 @@ public class YandexMusicAudioSourceManager implements AudioSourceManager, HttpCo
 
   @Override
   public void configureRequests(Function<RequestConfig, RequestConfig> configurator) {
-    httpInterfaceManager.configureRequests(configurator);
+    combinedHttpConfiguration.configureRequests(configurator);
   }
 
   @Override
   public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
-    httpInterfaceManager.configureBuilder(configurator);
+    combinedHttpConfiguration.configureBuilder(configurator);
   }
 
-  public void configureApiRequests(Function<RequestConfig, RequestConfig> configurator) {
-    trackLoader.getHttpConfiguration().configureRequests(configurator);
-    playlistLoader.getHttpConfiguration().configureRequests(configurator);
-    searchResultLoader.getHttpConfiguration().configureRequests(configurator);
-    directUrlLoader.getHttpConfiguration().configureRequests(configurator);
+  public ExtendedHttpConfigurable getHttpConfiguration() {
+    return combinedHttpConfiguration;
   }
 
-  public void configureApiBuilder(Consumer<HttpClientBuilder> configurator) {
-    trackLoader.getHttpConfiguration().configureBuilder(configurator);
-    playlistLoader.getHttpConfiguration().configureBuilder(configurator);
-    searchResultLoader.getHttpConfiguration().configureBuilder(configurator);
-    directUrlLoader.getHttpConfiguration().configureBuilder(configurator);
+  public ExtendedHttpConfigurable getMainHttpConfiguration() {
+    return httpInterfaceManager;
+  }
+
+  public ExtendedHttpConfigurable getTrackLHttpConfiguration() {
+    return trackLoader.getHttpConfiguration();
+  }
+
+  public ExtendedHttpConfigurable getPlaylistLHttpConfiguration() {
+    return playlistLoader.getHttpConfiguration();
+  }
+
+  public ExtendedHttpConfigurable getDirectUrlLHttpConfiguration() {
+    return directUrlLoader.getHttpConfiguration();
+  }
+
+  public ExtendedHttpConfigurable getSearchHttpConfiguration() {
+    return searchResultLoader.getHttpConfiguration();
   }
 
   @Override
   public String getSourceName() {
     return "yandex-music";
   }
-
 }
