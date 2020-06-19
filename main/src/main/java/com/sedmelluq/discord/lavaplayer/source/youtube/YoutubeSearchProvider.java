@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -121,8 +122,7 @@ public class YoutubeSearchProvider implements YoutubeSearchResultLoader {
     String author = contentElement.select(".yt-lockup-byline > a").text();
 
     AudioTrackInfo info = new AudioTrackInfo(title, author, duration, videoId, false,
-        WATCH_URL_PREFIX + videoId,
-        Collections.singletonMap("artworkUrl", String.format("https://img.youtube.com/vi/%s/0.jpg", videoId)));
+        WATCH_URL_PREFIX + videoId, getMetadata(videoId));
 
     tracks.add(trackFactory.apply(info));
   }
@@ -163,8 +163,12 @@ public class YoutubeSearchProvider implements YoutubeSearchResultLoader {
     String videoId = json.get("videoId").text();
 
     AudioTrackInfo info = new AudioTrackInfo(title, author, duration, videoId, false,
-        WATCH_URL_PREFIX + videoId);
+        WATCH_URL_PREFIX + videoId, getMetadata(videoId));
 
     return trackFactory.apply(info);
+  }
+
+  private Map<String, String> getMetadata(String videoId) {
+    return Collections.singletonMap("artworkUrl", String.format("https://img.youtube.com/vi/%s/0.jpg", videoId));
   }
 }
