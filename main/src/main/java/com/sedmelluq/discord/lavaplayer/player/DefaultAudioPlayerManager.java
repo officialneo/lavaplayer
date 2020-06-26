@@ -412,7 +412,7 @@ public class DefaultAudioPlayerManager implements AudioPlayerManager {
     trackInfoExecutorService.setMaximumPoolSize(poolSize);
   }
 
-  private boolean checkSourcesForItem(AudioReference reference, AudioLoadResultHandler resultHandler, boolean[] reported) {
+  public boolean checkSourcesForItem(AudioReference reference, AudioLoadResultHandler resultHandler, boolean[] reported) {
     AudioReference currentReference = reference;
 
     for (int redirects = 0; redirects < MAXIMUM_LOAD_REDIRECTS && currentReference.identifier != null; redirects++) {
