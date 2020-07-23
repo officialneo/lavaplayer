@@ -8,6 +8,13 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.BasicCookieStore;
 
 public class YandexHttpContextFilter implements HttpContextFilter {
+
+  private static String oAuthToken = null;
+
+  public static void setOAuthToken(String value) {
+    oAuthToken = value;
+  }
+
   @Override
   public void onContextOpen(HttpClientContext context) {
     CookieStore cookieStore = context.getCookieStore();
@@ -30,6 +37,9 @@ public class YandexHttpContextFilter implements HttpContextFilter {
   public void onRequest(HttpClientContext context, HttpUriRequest request, boolean isRepetition) {
     request.setHeader("User-Agent", "Yandex-Music-API");
     request.setHeader("X-Yandex-Music-Client", "WindowsPhone/3.20");
+    if (oAuthToken != null) {
+      request.setHeader("Authorization", "OAuth " + oAuthToken);
+    }
   }
 
   @Override
