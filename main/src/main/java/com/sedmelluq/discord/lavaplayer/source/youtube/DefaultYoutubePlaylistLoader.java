@@ -143,7 +143,7 @@ public class DefaultYoutubePlaylistLoader implements YoutubePlaylistLoader {
         String videoId = item.get("videoId").text();
         String title = item.get("title").get("simpleText").text();
 
-        if (title.isNull()) {
+        if (title == null) {
           title = item.get("title").get("runs").index(0).get("text").text();
         }
 
