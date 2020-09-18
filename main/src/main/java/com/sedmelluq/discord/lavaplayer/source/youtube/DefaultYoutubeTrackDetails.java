@@ -308,7 +308,12 @@ public class DefaultYoutubeTrackDetails implements YoutubeTrackDetails {
 
     JsonBrowser videoDetails = playerResponse.get("videoDetails");
 
-    boolean isStream = "0".equals(videoDetails.get("lengthSeconds").text());
+    long realDuration = videoDetails.get("lengthSeconds").asLong(0L);
+    boolean isStream = videoDetails.get("isLiveContent").asBoolean(false) && realDuration != 0L;
+    // We do this because past broadcasts (livestreams that were converted to VODs) return true for isLiveContent,
+    // but have a length of 0. There's also an "isLive" property that we could check (it only exists for CURRENT livestreams,
+    // not past broadcasts), however given YouTube's love for changing things, I prefer not to rely on this property.
+
     long duration = extractDurationSeconds(isStream, videoDetails, "lengthSeconds");
 
     return buildTrackInfo(videoId, videoDetails.get("title").text(), videoDetails.get("author").text(), isStream, duration);
