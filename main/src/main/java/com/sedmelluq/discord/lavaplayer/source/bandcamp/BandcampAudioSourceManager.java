@@ -66,19 +66,8 @@ public class BandcampAudioSourceManager implements AudioSourceManager, HttpConfi
     } else if (albumUrlPattern.matcher(reference.identifier).matches()) {
       return loadAlbum(reference.identifier);
     }
-    //extract the data from the page
-    return extractFromPage(reference.identifier, (httpClient, text) -> {
-      //read the original url from the custom site
-      String ogUrl = readOgUrl(text);
 
-      //proceed as usual if the found url is a bandcamp url
-      if (trackUrlPattern.matcher(ogUrl).matches()) {
-        return loadTrack(ogUrl);
-      } else if (albumUrlPattern.matcher(ogUrl).matches()) {
-        return loadAlbum(ogUrl);
-      }
-      return null; //return null if a bandcamp site was not found
-	});
+    return null;
   }
 
   private AudioItem loadTrack(String trackUrl) {
@@ -131,17 +120,6 @@ public class BandcampAudioSourceManager implements AudioSourceManager, HttpConfi
     }
 
     return bandUrl;
-  }
-
-  private String readOgUrl(String text) {
-    String ogUrl = DataFormatTools.extractBetween(text, "og:url\" content=\"", "\">");
-
-    if (ogUrl == null) {
-      //throw new FriendlyException("No original bandcamp url found.", SUSPICIOUS, null);
-      return null;
-    }
-
-    return ogUrl;
   }
 
   private JsonBrowser readAlbumInformation(String text) throws IOException {
