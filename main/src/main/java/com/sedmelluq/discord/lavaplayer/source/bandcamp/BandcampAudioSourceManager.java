@@ -137,7 +137,8 @@ public class BandcampAudioSourceManager implements AudioSourceManager, HttpConfi
     String ogUrl = DataFormatTools.extractBetween(text, "og:url\" content=\"", "\">");
 
     if (ogUrl == null) {
-      throw new FriendlyException("No original bandcamp url found.", SUSPICIOUS, null);
+      //throw new FriendlyException("No original bandcamp url found.", SUSPICIOUS, null);
+      return null;
     }
 
     return ogUrl;
