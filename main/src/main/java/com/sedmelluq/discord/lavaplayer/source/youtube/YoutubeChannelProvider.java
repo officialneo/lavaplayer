@@ -45,7 +45,7 @@ public class YoutubeChannelProvider implements YoutubeChannelLoader {
     if (channelUrlRegex.matcher(query).matches()) {
       return doRequest(query, this::extractChannelResult);
     }
-    return doRequest(query, this::extractSearchResults);
+    return doRequest("https://www.youtube.com/results", this::extractSearchResults);
   }
 
   private List<YoutubeChannel> doRequest(String requestUrl, Function<Document, List<YoutubeChannel>> extractor) {
