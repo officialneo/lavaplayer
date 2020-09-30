@@ -10,6 +10,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,7 +29,8 @@ public class YoutubeChannelProvider implements YoutubeChannelLoader {
   private static final Logger log = LoggerFactory.getLogger(YoutubeChannelProvider.class);
 
   private final HttpInterfaceManager httpInterfaceManager;
-  private final Pattern polymerInitialDataRegex = Pattern.compile("window\\[\"ytInitialData\"]\\s*=\\s*(.*);+\\n");
+  private static final Pattern polymerInitialDataRegex = Pattern.compile("window\\[\"ytInitialData\"]\\s*=\\s*(.*);+\\n");
+  private static final Pattern channelUrlRegex = Pattern.compile("^https?://(?:www\\.|m\\.|music\\.|)youtube\\.com/(?:user|channel)/.*");
 
   public YoutubeChannelProvider() {
     this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
@@ -39,10 +42,15 @@ public class YoutubeChannelProvider implements YoutubeChannelLoader {
 
   @Override
   public List<YoutubeChannel> loadSearchResult(String query) {
-    log.debug("Performing a search with query {}", query);
+    if (channelUrlRegex.matcher(query).matches()) {
+      return doRequest(query, this::extractChannelResult);
+    }
+    return doRequest(query, this::extractSearchResults);
+  }
 
+  private List<YoutubeChannel> doRequest(String requestUrl, Function<Document, List<YoutubeChannel>> extractor) {
     try (HttpInterface httpInterface = httpInterfaceManager.getInterface()) {
-      URI url = new URIBuilder("https://www.youtube.com/results").addParameter("search_query", query).build();
+      URI url = new URIBuilder(requestUrl).build();
 
       try (CloseableHttpResponse response = httpInterface.execute(new HttpGet(url))) {
         int statusCode = response.getStatusLine().getStatusCode();
@@ -51,11 +59,28 @@ public class YoutubeChannelProvider implements YoutubeChannelLoader {
         }
 
         Document document = Jsoup.parse(response.getEntity().getContent(), StandardCharsets.UTF_8.name(), "");
-        return extractSearchResults(document);
+        return extractor.apply(document);
       }
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private List<YoutubeChannel> extractChannelResult(Document document) {
+    log.debug("Attempting to parse results page as polymer");
+    Element body = document.body();
+
+    String id = selectMeta(body,"meta[itemprop=channelId]");
+    String title = selectMeta(body,"meta[name=title]");
+
+    if (id == null || title == null) {
+      throw new IllegalStateException("Can't get channel info");
+    }
+
+    String description = selectMeta(body,"meta[name=description]");
+    String thumbnail = selectMeta(body,"meta[name=twitter:image]");
+
+    return Collections.singletonList(new YoutubeChannel(id, title, description, thumbnail));
   }
 
   private List<YoutubeChannel> extractSearchResults(Document document) {
@@ -113,5 +138,10 @@ public class YoutubeChannelProvider implements YoutubeChannelLoader {
     }
 
     return new YoutubeChannel(id, title, description, thumbnail);
+  }
+
+  private String selectMeta(Element body, String query) {
+    Element element = body.select(query).first();
+    return element != null ? element.attr("content") : null;
   }
 }
