@@ -197,6 +197,10 @@ public class YoutubeAudioSourceManager implements AudioSourceManager, HttpConfig
     return linkRouter.route(reference.identifier, loadingRoutes);
   }
 
+  public YoutubeChannelLoader getChannelLoader() {
+    return channelLoader;
+  }
+
   /**
    * Loads a single track from video ID.
    *
@@ -267,10 +271,6 @@ public class YoutubeAudioSourceManager implements AudioSourceManager, HttpConfig
       } else {
         return null;
       }
-    }
-
-    public YoutubeChannelLoader getChannelLoader() {
-      return channelLoader;
     }
 
     @Override
