@@ -8,6 +8,8 @@ import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.FunctionalResultHandler;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.source.yamusic.YandexMusicAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeChannel;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -15,6 +17,7 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import java.io.IOException;
+import java.util.List;
 
 import static com.sedmelluq.discord.lavaplayer.format.StandardAudioDataFormats.COMMON_PCM_S16_BE;
 
@@ -24,6 +27,9 @@ public class LocalPlayerDemo {
     manager.registerSourceManager(new YandexMusicAudioSourceManager(true));
     AudioSourceManagers.registerRemoteSources(manager);
     manager.getConfiguration().setOutputFormat(COMMON_PCM_S16_BE);
+
+    List<YoutubeChannel> channels = manager.source(YoutubeAudioSourceManager.class).getChannelLoader()
+        .loadSearchResult("Wycc220");
 
     AudioPlayer player = manager.createPlayer();
 

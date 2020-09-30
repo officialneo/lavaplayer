@@ -42,16 +42,21 @@ public class YoutubeChannelProvider implements YoutubeChannelLoader {
 
   @Override
   public List<YoutubeChannel> loadSearchResult(String query) {
-    if (channelUrlRegex.matcher(query).matches()) {
-      return doRequest(query, this::extractChannelResult);
+    try {
+      if (channelUrlRegex.matcher(query).matches()) {
+        return doRequest(new URIBuilder(query).build(), this::extractChannelResult);
+      }
+      return doRequest(
+          new URIBuilder("https://www.youtube.com/results")
+          .addParameter("search_query", query).build(),
+          this::extractSearchResults);
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
     }
-    return doRequest("https://www.youtube.com/results", this::extractSearchResults);
   }
 
-  private List<YoutubeChannel> doRequest(String requestUrl, Function<Document, List<YoutubeChannel>> extractor) {
+  private List<YoutubeChannel> doRequest(URI url, Function<Document, List<YoutubeChannel>> extractor) throws IOException {
     try (HttpInterface httpInterface = httpInterfaceManager.getInterface()) {
-      URI url = new URIBuilder(requestUrl).build();
-
       try (CloseableHttpResponse response = httpInterface.execute(new HttpGet(url))) {
         int statusCode = response.getStatusLine().getStatusCode();
         if (!HttpClientTools.isSuccessWithContent(statusCode)) {
@@ -61,8 +66,6 @@ public class YoutubeChannelProvider implements YoutubeChannelLoader {
         Document document = Jsoup.parse(response.getEntity().getContent(), StandardCharsets.UTF_8.name(), "");
         return extractor.apply(document);
       }
-    } catch (Throwable e) {
-      throw new RuntimeException(e);
     }
   }
 
