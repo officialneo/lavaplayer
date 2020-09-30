@@ -30,7 +30,7 @@ public class YoutubeChannelProvider implements YoutubeChannelLoader {
 
   private final HttpInterfaceManager httpInterfaceManager;
   private static final Pattern polymerInitialDataRegex = Pattern.compile("window\\[\"ytInitialData\"]\\s*=\\s*(.*);+\\n");
-  private static final Pattern channelUrlRegex = Pattern.compile("^https?://(?:www\\.|m\\.|music\\.|)youtube\\.com/(?:user|channel)/.*");
+  private static final Pattern channelUrlRegex = Pattern.compile("^https?://(?:www\\.|m\\.|music\\.|)youtube\\.com/(?:user|channel|c)/.*");
 
   public YoutubeChannelProvider() {
     this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
