@@ -12,6 +12,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sedmelluq.discord.lavaplayer.tools.DataFormatTools.convertToMapLayout;
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.COMMON;
@@ -19,6 +21,7 @@ import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoader {
+  private static final Logger log = LoggerFactory.getLogger(DefaultYoutubeTrackDetailsLoader.class);
 
   @Override
   public YoutubeTrackDetails loadDetails(HttpInterface httpInterface, String videoId) {
@@ -165,6 +168,8 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
       if (configJson != null) {
         return JsonBrowser.parse(configJson);
       }
+
+      log.debug("Player config not found for track {}: {}", videoId, html);
     }
 
     throw new FriendlyException("Track information is unavailable.", SUSPICIOUS,
