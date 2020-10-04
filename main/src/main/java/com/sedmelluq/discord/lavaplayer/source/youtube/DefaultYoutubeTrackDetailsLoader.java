@@ -163,30 +163,19 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
       HttpClientTools.assertSuccessWithContent(response, "embed video page response");
 
       String html = EntityUtils.toString(response.getEntity(), UTF_8);
-      String configJson = DataFormatTools.extractBetween(html, "'PLAYER_CONFIG': ", "});writeEmbed();"); // ', writeEmbed
+      String configJson = DataFormatTools.extractBetween(
+          html,
+          "'PLAYER_CONFIG':", "});writeEmbed();",
+          "'PLAYER_CONFIG':", "});yt.setConfig",
+          "\"PLAYER_CONFIG\":", "});writeEmbed();",
+          "\"PLAYER_CONFIG\":", "});yt.setConfig"
+      );
 
       if (configJson != null) {
         return JsonBrowser.parse(configJson);
       }
 
-      configJson = DataFormatTools.extractBetween(html, "'PLAYER_CONFIG': ", "});yt.setConfig"); // ', setConfig
-
-      if (configJson != null) {
-        return JsonBrowser.parse(configJson);
-      }
-
-      configJson = DataFormatTools.extractBetween(html, "\"PLAYER_CONFIG\": ", "});writeEmbed();"); // ", writeEmbed
-
-      if (configJson != null) {
-        return JsonBrowser.parse(configJson);
-      }
-
-      configJson = DataFormatTools.extractBetween(html, "\"PLAYER_CONFIG\": ", "});yt.setConfig"); // ", setConfig
-
-      if (configJson != null) {
-        return JsonBrowser.parse(configJson);
-      }
-
+      //String configJson = DataFormatTools.extractBetween(html, ); // ', writeEmbed
       // thanks youtube very cool
 
       log.debug("Player config not found for track {}: {}", videoId, html);
