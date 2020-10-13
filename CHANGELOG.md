@@ -1,6 +1,6 @@
 # Change Log
 
-## [1.3.57] -- 2020-10-11
+## [1.3.57] -- 2020-10-13
 ### Fixed
 - Fixed age restricted videos throwing `NullPointerException` (PR 21 by Walkyst).
 
