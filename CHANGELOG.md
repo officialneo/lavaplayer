@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.3.58] -- 2020-10-14
+### Fixed
+- Fixed searching occasionally emitting an `Failed to match ytInitialData` error (PR 22 by Walkyst).
+
 ## [1.3.57] -- 2020-10-13
 ### Fixed
 - Fixed age restricted videos throwing `NullPointerException` (PR 21 by Walkyst).
