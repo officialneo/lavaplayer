@@ -29,7 +29,7 @@ public class YoutubeChannelProvider implements YoutubeChannelLoader {
   private static final Logger log = LoggerFactory.getLogger(YoutubeChannelProvider.class);
 
   private final HttpInterfaceManager httpInterfaceManager;
-  private static final Pattern polymerInitialDataRegex = Pattern.compile("window\\[\"ytInitialData\"]\\s*=\\s*(.*);+\\n");
+  private static final Pattern polymerInitialDataRegex = Pattern.compile("(window\\[\"ytInitialData\"]|var ytInitialData)\\s*=\\s*(.*);");
   private static final Pattern channelUrlRegex = Pattern.compile("^https?://(?:www\\.|m\\.|music\\.|)youtube\\.com/(?:user|channel|c)/.*");
 
   public YoutubeChannelProvider() {
@@ -103,7 +103,7 @@ public class YoutubeChannelProvider implements YoutubeChannelLoader {
       return Collections.emptyList();
     }
 
-    JsonBrowser jsonBrowser = JsonBrowser.parse(matcher.group(1));
+    JsonBrowser jsonBrowser = JsonBrowser.parse(matcher.group(2));
     ArrayList<YoutubeChannel> list = new ArrayList<>();
     jsonBrowser.get("contents")
         .get("twoColumnSearchResultsRenderer")
