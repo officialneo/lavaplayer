@@ -12,6 +12,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sedmelluq.discord.lavaplayer.tools.DataFormatTools.convertToMapLayout;
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.COMMON;
@@ -19,6 +21,7 @@ import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoader {
+  private static final Logger log = LoggerFactory.getLogger(DefaultYoutubeTrackDetailsLoader.class);
 
   @Override
   public YoutubeTrackDetails loadDetails(HttpInterface httpInterface, String videoId) {
@@ -45,13 +48,21 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
         JsonBrowser json = JsonBrowser.parse(responseText);
         JsonBrowser playerInfo = JsonBrowser.NULL_BROWSER;
         JsonBrowser statusBlock = JsonBrowser.NULL_BROWSER;
+        JsonBrowser baseJs = JsonBrowser.NULL_BROWSER;
 
         for (JsonBrowser child : json.values()) {
           if (child.isMap()) {
             if (!child.get("player").isNull()) {
               playerInfo = child.get("player");
+              baseJs = playerInfo.get("assets").get("js");
             } else if (!child.get("playerResponse").isNull()) {
-              statusBlock = child.get("playerResponse").get("playabilityStatus");
+              JsonBrowser playerResponse = child.get("playerResponse");
+              statusBlock = playerResponse.get("playabilityStatus");
+              if (playerInfo.isNull()) {
+                JsonBrowser baseEmbedPage = loadTrackBaseInfoFromEmbedPage(httpInterface, videoId);
+                baseJs = baseEmbedPage.get("assets").get("js");
+                playerInfo = playerResponse;
+              }
             }
           }
         }
@@ -62,14 +73,14 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
               throw new RuntimeException("No player info block.");
             }
 
-            return new DefaultYoutubeTrackDetails(videoId, playerInfo);
+            return new DefaultYoutubeTrackDetails(videoId, playerInfo, baseJs);
           case REQUIRES_LOGIN:
-            return new DefaultYoutubeTrackDetails(videoId, getTrackInfoFromEmbedPage(httpInterface, videoId));
+            return new DefaultYoutubeTrackDetails(videoId, getTrackInfoFromEmbedPage(httpInterface, videoId), baseJs);
           case DOES_NOT_EXIST:
             return null;
         }
 
-        return new DefaultYoutubeTrackDetails(videoId, playerInfo);
+        return new DefaultYoutubeTrackDetails(videoId, playerInfo, baseJs);
       } catch (FriendlyException e) {
         throw e;
       } catch (Exception e) {
@@ -156,11 +167,22 @@ public class DefaultYoutubeTrackDetailsLoader implements YoutubeTrackDetailsLoad
       HttpClientTools.assertSuccessWithContent(response, "embed video page response");
 
       String html = EntityUtils.toString(response.getEntity(), UTF_8);
-      String configJson = DataFormatTools.extractBetween(html, "'PLAYER_CONFIG': ", "});writeEmbed();");
+      String configJson = DataFormatTools.extractBetween(
+          html,
+          "'PLAYER_CONFIG':", "});writeEmbed();",
+          "'PLAYER_CONFIG':", "});yt.setConfig",
+          "\"PLAYER_CONFIG\":", "});writeEmbed();",
+          "\"PLAYER_CONFIG\":", "});yt.setConfig"
+      );
 
       if (configJson != null) {
         return JsonBrowser.parse(configJson);
       }
+
+      //String configJson = DataFormatTools.extractBetween(html, ); // ', writeEmbed
+      // thanks youtube very cool
+
+      log.debug("Player config not found for track {}: {}", videoId, html);
     }
 
     throw new FriendlyException("Track information is unavailable.", SUSPICIOUS,

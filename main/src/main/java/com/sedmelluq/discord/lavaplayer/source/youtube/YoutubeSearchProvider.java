@@ -41,7 +41,7 @@ public class YoutubeSearchProvider implements YoutubeSearchResultLoader {
 
   private static final String WATCH_URL_PREFIX = "https://www.youtube.com/watch?v=";
   private final HttpInterfaceManager httpInterfaceManager;
-  private final Pattern polymerInitialDataRegex = Pattern.compile("window\\[\"ytInitialData\"]\\s*=\\s*(.*);+\\n");
+  private final Pattern polymerInitialDataRegex = Pattern.compile("(window\\[\"ytInitialData\"]|var ytInitialData)\\s*=\\s*(.*);");
 
   public YoutubeSearchProvider() {
     this.httpInterfaceManager = HttpClientTools.createCookielessThreadLocalManager();
@@ -135,7 +135,7 @@ public class YoutubeSearchProvider implements YoutubeSearchResultLoader {
       return Collections.emptyList();
     }
 
-    JsonBrowser jsonBrowser = JsonBrowser.parse(matcher.group(1));
+    JsonBrowser jsonBrowser = JsonBrowser.parse(matcher.group(2));
     ArrayList<AudioTrack> list = new ArrayList<>();
     jsonBrowser.get("contents")
         .get("twoColumnSearchResultsRenderer")
@@ -159,6 +159,9 @@ public class YoutubeSearchProvider implements YoutubeSearchResultLoader {
 
     String title = json.get("title").get("runs").index(0).get("text").text();
     String author = json.get("ownerText").get("runs").index(0).get("text").text();
+    if (json.get("lengthText").isNull()) {
+      return null; // Ignore if the video is a live stream
+    }
     long duration = DataFormatTools.durationTextToMillis(json.get("lengthText").get("simpleText").text());
     String videoId = json.get("videoId").text();
 
