@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.3.59] -- 2020-10-19
+### Changed
+- Optimized requests for when a YT video's status is `REQUIRES_LOGIN` (PR 23 by Walkyst).
+
 ## [1.3.58] -- 2020-10-14
 ### Fixed
 - Fixed searching occasionally emitting an `Failed to match ytInitialData` error (PR 22 by Walkyst).
