@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.3.60] -- 2020-10-27
+### Fixed
+- Fixed fetching baseJs in some cases, which could cause a NullPointerException (PR 25 by Walkyst).
+
+### Changed
+- Fixed Twitch stream including ads which also broke stream start sometimes.
+- Simplified Bandcamp URL handling.
+
 ## [1.3.59] -- 2020-10-19
 ### Changed
 - Optimized requests for when a YT video's status is `REQUIRES_LOGIN` (PR 23 by Walkyst).
