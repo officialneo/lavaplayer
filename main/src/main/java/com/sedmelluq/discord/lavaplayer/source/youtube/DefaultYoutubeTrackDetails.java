@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.sedmelluq.discord.lavaplayer.tools.DataFormatTools.convertToMapLayout;
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.COMMON;
@@ -66,8 +67,8 @@ public class DefaultYoutubeTrackDetails implements YoutubeTrackDetails {
   @Override
   public String getPlayerScript() {
     if (baseJs.isNull()) {
-      String baseJs = Optional.ofNullable(data.get("assets").get("js").text())
-              .orElse(data.get("WEB_PLAYER_CONTEXT_CONFIG_ID_EMBEDDED_PLAYER").get("jsUrl").text());
+      String baseJs = Optional.ofNullable(info.get("assets").get("js").text())
+              .orElse(info.get("WEB_PLAYER_CONTEXT_CONFIG_ID_EMBEDDED_PLAYER").get("jsUrl").text());
       return baseJs;
     } else {
       return baseJs.text();
