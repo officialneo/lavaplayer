@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.3.61] -- 2020-11-05
+### Fixed
+- Fixed no exception thrown when native lib loading fails.
+- Fixed seeking on MKV files with cues in the end of the file.
+- Fixed some YouTube live streams caused by MP4 audio data being skipped in MP4 with no sidx.
+
 ## [1.3.60] -- 2020-10-27
 ### Fixed
 - Fixed fetching baseJs in some cases, which could cause a NullPointerException (PR 25 by Walkyst).
