@@ -1,10 +1,13 @@
 # Change Log
 
-## [1.3.61] -- 2020-11-05
+## [1.3.61] -- 2020-11-09
 ### Fixed
 - Fixed no exception thrown when native lib loading fails.
 - Fixed seeking on MKV files with cues in the end of the file.
 - Fixed some YouTube live streams caused by MP4 audio data being skipped in MP4 with no sidx.
+- Fixed YouTube playlist pagination being broken (PR 552 by Xavinlol).
+- Fixed AAC streams possibly detected as MP3 even if their mime type is set to audio/aac.
+- Added support for SoundCloud tracks which only have MP3 HLS format available.
 
 ## [1.3.60] -- 2020-10-27
 ### Fixed
